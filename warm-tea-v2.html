@@ -423,6 +423,38 @@ body{
 .field:focus{border-color:rgba(233,201,121,.3)}
 .field::placeholder{color:var(--faint)}
 
+.voice-lang{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin-top:16px;
+}
+.voice-lang label{
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--faint);
+}
+.lang-select{
+  appearance:none;
+  -webkit-appearance:none;
+  border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  border-radius:999px;
+  padding:7px 28px 7px 12px;
+  font-size:12px;
+  letter-spacing:.02em;
+}
+.lang-note{
+  text-align:center;
+  font-size:11px;
+  color:var(--faint);
+  margin-top:8px;
+  line-height:1.4;
+}
+
 
 /* ══════════════════════════════════════════════════════════
    SCREEN 3: SORT
@@ -865,12 +897,34 @@ body{
     <div class="label">Step 1</div>
     <h1 class="title mt12">Pour it out</h1>
     <p class="subtitle mt8">Say it messy. Say it honestly.<br>No one needs to understand it yet.</p>
+    <div class="voice-lang">
+      <label for="speechLang">Voice</label>
+      <select id="speechLang" class="lang-select">
+        <option value="auto" selected>Auto (device)</option>
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+        <option value="id-ID">Bahasa Indonesia</option>
+        <option value="ms-MY">Bahasa Melayu</option>
+        <option value="es-ES">Espanol</option>
+        <option value="fr-FR">Francais</option>
+        <option value="de-DE">Deutsch</option>
+        <option value="pt-BR">Portugues (BR)</option>
+        <option value="ru-RU">Russkiy</option>
+        <option value="ar-SA">Arabic</option>
+        <option value="hi-IN">Hindi</option>
+        <option value="ja-JP">Japanese</option>
+        <option value="ko-KR">Korean</option>
+        <option value="zh-CN">Chinese (Simplified)</option>
+        <option value="zh-TW">Chinese (Traditional)</option>
+      </select>
+    </div>
+    <p class="lang-note">Any language is okay. Fragments and gibberish are okay too.</p>
   </div>
   <div id="ph-listening" class="px center" style="display:none">
     <div style="height:56px"></div>
     <div class="label">Listening</div>
     <h1 class="title mt12">I'm here.</h1>
-    <p class="subtitle mt8">Take your time. You don't have to hold anything.</p>
+    <p class="subtitle mt8">Take your time. Any language, mixed words, or nonsense sounds are welcome.</p>
   </div>
   <div id="ph-done" class="px center" style="display:none">
     <div style="height:56px"></div>
@@ -904,10 +958,10 @@ body{
   </div>
 
   <!-- transcript (post-record) -->
-  <textarea class="field px mt20" id="transcript" rows="5" placeholder="Tap the orb to begin…" style="display:none"></textarea>
+  <textarea class="field px mt20" id="transcript" rows="5" placeholder="Tap the orb to begin..." spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" style="display:none"></textarea>
 
   <!-- text mode -->
-  <textarea class="field px mt20" id="textArea" rows="6" placeholder="Write it badly. Let it be messy." style="display:none"></textarea>
+  <textarea class="field px mt20" id="textArea" rows="6" placeholder="Write it badly. Let it be messy." spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" style="display:none"></textarea>
 
   <!-- action sets -->
   <div id="pa-idle" class="px mt32 pb-safe">
@@ -1162,6 +1216,7 @@ function go(id){
    POUR
 ──────────────────────────────────────────────────────── */
 let recog=null, listening=false, timerIv=null, recSec=0;
+let recFinal='', recInterim='';
 
 function toggleChip(el){
   el.classList.toggle('on');
@@ -1171,6 +1226,13 @@ function toggleChip(el){
 }
 
 function orbTap(){ listening?stopRec():startRec() }
+
+function currentSpeechLang(){
+  const sel=document.getElementById('speechLang');
+  const pick=sel?sel.value:'auto';
+  if(pick && pick!=='auto') return pick;
+  return navigator.language || document.documentElement.lang || 'en-US';
+}
 
 function showText(){
   document.getElementById('ph-idle').style.display='none';
@@ -1191,33 +1253,73 @@ function startRec(){
   recSec=0; tickTimer();
   timerIv=setInterval(tickTimer,1000);
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(SR){
-    recog=new SR();
-    recog.continuous=true;recog.interimResults=true;
-    let final=S.transcript;
-    recog.onresult=e=>{
-      let interim='';
-      for(let i=e.resultIndex;i<e.results.length;i++){
-        if(e.results[i].isFinal) final+=e.results[i][0].transcript+' ';
-        else interim+=e.results[i][0].transcript;
-      }
-      document.getElementById('transcript').value=final+interim;
-    };
-    recog.onerror=()=>{};
-    recog.start();
+  if(!SR){
+    clearInterval(timerIv);
+    listening=false;
+    const ta=document.getElementById('textArea');
+    showText();
+    ta.placeholder='Voice recognition is unavailable here. Type any language, sounds, or fragments.';
+    return;
   }
+
+  recFinal=(S.transcript||'').trim();
+  if(recFinal) recFinal+=' ';
+  recInterim='';
+  recog=new SR();
+  recog.lang=currentSpeechLang();
+  recog.continuous=true;
+  recog.interimResults=true;
+  recog.maxAlternatives=3;
+
+  recog.onresult=e=>{
+    let interimNow='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const alt=e.results[i][0];
+      const chunk=alt&&alt.transcript?alt.transcript:'';
+      if(!chunk) continue;
+      if(e.results[i].isFinal){
+        recFinal+=chunk+' ';
+      } else {
+        interimNow+=chunk+' ';
+      }
+    }
+    recInterim=interimNow;
+    document.getElementById('transcript').value=(recFinal+recInterim).replace(/\s{2,}/g,' ');
+  };
+
+  recog.onerror=(e)=>{
+    if(e && e.error==='language-not-supported'){
+      const ta=document.getElementById('transcript');
+      ta.placeholder='Language not supported on this browser. Try Auto (device) or type instead.';
+      stopRec();
+    }
+  };
+
+  recog.onend=()=>{
+    if(listening){
+      try{recog.start()}catch(_){}
+    }
+  };
+
+  try{recog.start()}catch(_){}
 }
 function stopRec(){
   clearInterval(timerIv); listening=false;
   if(recog){recog.stop();recog=null;}
   const ta=document.getElementById('transcript');
-  if(!ta.value.trim()){ta.value='';ta.placeholder='Type what you want to add…';}
+  const merged=(recFinal+recInterim).replace(/\s{2,}/g,' ').trim();
+  if(merged) ta.value=merged;
+  if(!ta.value.trim()){ta.value='';ta.placeholder='Type what you want to add...';}
   S.transcript=ta.value;
+  recFinal='';
+  recInterim='';
   setPourState('done');
 }
 function cancelRec(){
   clearInterval(timerIv); listening=false;
   if(recog){recog.stop();recog=null;}
+  recFinal='';
+  recInterim='';
   setPourState('idle');
 }
 function addMore(){ S.transcript=document.getElementById('transcript').value; setPourState('idle'); }
