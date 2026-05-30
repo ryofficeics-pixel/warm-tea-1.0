@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Warm Tea</title>
+  <style>
+    :root {
+      --bg: #17110c;
+      --bg2: #24180f;
+      --card: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f3ead8;
+      --muted: rgba(243, 234, 216, 0.58);
+      --gold: #d7a84f;
+      --gold2: #f3d27a;
+      --radius: 18px;
+      --breath: 0.5;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(243, 210, 122, 0.08), transparent 45%),
+        radial-gradient(circle at 80% 90%, rgba(215, 168, 79, 0.07), transparent 40%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      color: var(--text);
+      font-family: "Segoe UI", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) 12px max(20px, env(safe-area-inset-bottom));
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+      min-height: calc(100dvh - 32px);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+      backdrop-filter: blur(6px);
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      overflow-y: auto;
+    }
+
+    .screen.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: 0.4px;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    button, select, textarea, input {
+      font: inherit;
+      color: inherit;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      border-color: rgba(243, 210, 122, 0.32);
+      background: linear-gradient(180deg, rgba(243, 210, 122, 0.2), rgba(215, 168, 79, 0.14));
+    }
+
+    .btn-inline {
+      width: fit-content;
+      align-self: flex-start;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .home {
+      justify-content: center;
+      text-align: left;
+      gap: 20px;
+      padding-bottom: 40px;
+    }
+
+    .tagline {
+      font-size: 16px;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+    }
+
+    .tiny {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.16);
+      color: var(--text);
+      padding: 14px;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: rgba(243, 210, 122, 0.38);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .row > .btn {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sort-item {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sort-item input,
+    .sort-item select {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.18);
+      padding: 10px;
+      color: var(--text);
+      outline: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .bucket {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 108px;
+    }
+
+    .bucket h3 {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .bucket ul {
+      margin: 0;
+      padding: 0 0 0 14px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .breathing {
+      justify-content: space-between;
+      overflow: hidden;
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    .breath-top {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-next {
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      min-width: 68px;
+    }
+
+    .breath-center {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      margin-top: -20px;
+    }
+
+    .lotus-wrap {
+      position: relative;
+      width: min(80vw, 320px);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .lotus-layer,
+    .lotus-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      will-change: transform, opacity;
+      pointer-events: none;
+    }
+
+    .lotus-layer {
+      border-radius: 50%;
+      mix-blend-mode: screen;
+      opacity: 0.36;
+      border: 1px solid rgba(243, 210, 122, 0.18);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(243, 210, 122, 0.18), rgba(243, 210, 122, 0.03) 54%, transparent 78%),
+        repeating-conic-gradient(
+          from 0deg,
+          rgba(243, 210, 122, 0.26) 0deg 5deg,
+          rgba(215, 168, 79, 0.08) 5deg 12deg
+        );
+      box-shadow: inset 0 0 24px rgba(243, 210, 122, 0.08);
+    }
+
+    .lotus-layer::after {
+      content: "";
+      position: absolute;
+      inset: 9%;
+      border-radius: 50%;
+      border: 1px solid rgba(243, 210, 122, 0.2);
+      opacity: 0.7;
+    }
+
+    .lotus-core {
+      width: 28%;
+      height: 28%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 36% 34%, rgba(255, 245, 212, 0.8), rgba(243, 210, 122, 0.54) 42%, rgba(215, 168, 79, 0.28) 74%, transparent 100%);
+      box-shadow: 0 0 22px rgba(243, 210, 122, 0.28), inset 0 0 20px rgba(255, 246, 224, 0.24);
+    }
+
+    .breath-label {
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.9px;
+    }
+
+    .countdown {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.6px;
+    }
+
+    .sound-wrap {
+      display: flex;
+      justify-content: center;
+      padding-bottom: 6px;
+    }
+
+    .done {
+      justify-content: center;
+      gap: 22px;
+    }
+
+    .done h2 {
+      font-size: 30px;
+      font-weight: 500;
+    }
+
+    .muted-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(243, 234, 216, 0.2), transparent);
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="home" class="screen home active">
+      <div class="stack">
+        <h1>Warm Tea</h1>
+        <p class="tagline">Put the day down.</p>
+      </div>
+      <p>Quiet ritual to unload, sort, close, breathe, and leave work behind.</p>
+      <button class="btn btn-primary" id="startBtn">Start</button>
+    </section>
+
+    <section id="minddump" class="screen">
+      <h2>Unload the day.</h2>
+      <p>Messy is fine.</p>
+      <textarea id="dumpInput" placeholder="Write or speak whatever is still in your head..."></textarea>
+      <div class="row">
+        <button class="btn" id="voiceBtn" type="button">Voice input</button>
+        <button class="btn btn-primary" id="dumpContinueBtn" type="button">Continue</button>
+      </div>
+      <p id="voiceHint" class="tiny">Voice input ready if your browser supports speech recognition.</p>
+    </section>
+
+    <section id="sort" class="screen">
+      <h2>Sort the noise.</h2>
+      <p>Tonight only for urgent, expensive, legal, or irreversible.</p>
+      <div id="sortList" class="stack"></div>
+      <div class="row">
+        <button class="btn" id="addItemBtn" type="button">Add item</button>
+        <button class="btn btn-primary" id="sortContinueBtn" type="button">Continue</button>
+      </div>
+    </section>
+
+    <section id="closure" class="screen">
+      <h2>Closure</h2>
+      <div class="grid" id="closureGrid">
+        <article class="bucket"><h3>Tonight</h3><ul id="list-tonight"></ul></article>
+        <article class="bucket"><h3>Tomorrow</h3><ul id="list-tomorrow"></ul></article>
+        <article class="bucket"><h3>Parked</h3><ul id="list-parked"></ul></article>
+        <article class="bucket"><h3>Let go</h3><ul id="list-let_go"></ul></article>
+      </div>
+      <div class="card">
+        <p id="closureText"></p>
+      </div>
+      <button class="btn btn-primary" id="beginBreathingBtn" type="button">Begin breathing</button>
+    </section>
+
+    <section id="breathing" class="screen breathing">
+      <div class="breath-top">
+        <button class="btn btn-next" id="breathNextBtn" type="button">Next</button>
+      </div>
+      <div class="breath-center">
+        <div class="lotus-wrap" id="lotusWrap">
+          <div class="lotus-layer" data-size="96" data-speed="-0.00085" data-depth="0"></div>
+          <div class="lotus-layer" data-size="84" data-speed="0.00105" data-depth="1"></div>
+          <div class="lotus-layer" data-size="72" data-speed="-0.00135" data-depth="2"></div>
+          <div class="lotus-layer" data-size="62" data-speed="0.00165" data-depth="3"></div>
+          <div class="lotus-layer" data-size="52" data-speed="-0.00195" data-depth="4"></div>
+          <div class="lotus-layer" data-size="42" data-speed="0.00215" data-depth="5"></div>
+          <div class="lotus-core"></div>
+        </div>
+        <div class="breath-label" id="breathLabel">Inhale</div>
+        <div class="countdown" id="countdown">03:00</div>
+      </div>
+      <div class="sound-wrap">
+        <button class="btn btn-inline" id="soundToggleBtn" type="button">Sound off</button>
+      </div>
+    </section>
+
+    <section id="done" class="screen done">
+      <h2>Done for tonight.</h2>
+      <div class="muted-divider"></div>
+      <div class="row">
+        <button class="btn" id="saveSessionBtn" type="button">Save</button>
+        <button class="btn btn-primary" id="startAgainBtn" type="button">Start again</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var STORAGE_KEY = "warm_tea_session_v1";
+      var inhaleMs = 4000;
+      var exhaleMs = 6000;
+      var cycleMs = inhaleMs + exhaleMs;
+      var guidedMs = 180000;
+      var closureSentence = "Work is closed for now. Nothing here needs to follow you home unless it is urgent, expensive, legal, or irreversible.";
+      var ambientSrc = "";
+
+      var session = loadSession() || createSession();
+      session.closureSummary = closureSentence;
+
+      var screens = Array.prototype.slice.call(document.querySelectorAll(".screen"));
+      var startBtn = document.getElementById("startBtn");
+      var dumpInput = document.getElementById("dumpInput");
+      var dumpContinueBtn = document.getElementById("dumpContinueBtn");
+      var sortList = document.getElementById("sortList");
+      var sortContinueBtn = document.getElementById("sortContinueBtn");
+      var addItemBtn = document.getElementById("addItemBtn");
+      var closureText = document.getElementById("closureText");
+      var beginBreathingBtn = document.getElementById("beginBreathingBtn");
+      var breathLabel = document.getElementById("breathLabel");
+      var countdown = document.getElementById("countdown");
+      var breathNextBtn = document.getElementById("breathNextBtn");
+      var startAgainBtn = document.getElementById("startAgainBtn");
+      var saveSessionBtn = document.getElementById("saveSessionBtn");
+      var voiceBtn = document.getElementById("voiceBtn");
+      var voiceHint = document.getElementById("voiceHint");
+      var soundToggleBtn = document.getElementById("soundToggleBtn");
+      var layers = Array.prototype.slice.call(document.querySelectorAll(".lotus-layer"));
+
+      dumpInput.value = session.rawDump || "";
+      if (!Array.isArray(session.items)) session.items = [];
+
+      var recognition = null;
+      var isListening = false;
+      setupSpeechRecognition();
+
+      var ambientAudio = new Audio();
+      ambientAudio.loop = true;
+      ambientAudio.volume = 0.26;
+      if (ambientSrc) {
+        ambientAudio.src = ambientSrc;
+      }
+      var soundOn = false;
+
+      startBtn.addEventListener("click", function () {
+        showScreen("minddump");
+      });
+
+      dumpContinueBtn.addEventListener("click", function () {
+        var raw = dumpInput.value.trim();
+        if (!raw) {
+          dumpInput.focus();
+          return;
+        }
+        session.rawDump = raw;
+        session.items = parseItems(raw);
+        if (!session.items.length) {
+          session.items = [{ id: uid(), text: raw, bucket: "tomorrow" }];
+        }
+        saveSession();
+        renderSortItems();
+        showScreen("sort");
+      });
+
+      addItemBtn.addEventListener("click", function () {
+        session.items.push({ id: uid(), text: "", bucket: "parked" });
+        saveSession();
+        renderSortItems();
+      });
+
+      sortContinueBtn.addEventListener("click", function () {
+        session.items = session.items
+          .map(function (item) {
+            return {
+              id: item.id || uid(),
+              text: (item.text || "").trim(),
+              bucket: normalizeBucket(item.bucket)
+            };
+          })
+          .filter(function (item) { return item.text.length > 0; });
+        if (!session.items.length) {
+          session.items = [{ id: uid(), text: "Wrap up loose thoughts", bucket: "tomorrow" }];
+        }
+        saveSession();
+        renderClosure();
+        showScreen("closure");
+      });
+
+      beginBreathingBtn.addEventListener("click", function () {
+        showScreen("breathing");
+        startBreathing();
+      });
+
+      breathNextBtn.addEventListener("click", function () {
+        stopBreathing();
+        session.breathingCompleted = true;
+        saveSession();
+        showScreen("done");
+      });
+
+      startAgainBtn.addEventListener("click", function () {
+        stopBreathing();
+        stopListening();
+        session = createSession();
+        session.closureSummary = closureSentence;
+        dumpInput.value = "";
+        saveSession();
+        renderSortItems();
+        renderClosure();
+        showScreen("home");
+      });
+
+      saveSessionBtn.addEventListener("click", function () {
+        session.savedAt = new Date().toISOString();
+        saveSession();
+        saveSessionBtn.textContent = "Saved";
+        setTimeout(function () {
+          saveSessionBtn.textContent = "Save";
+        }, 1400);
+      });
+
+      voiceBtn.addEventListener("click", function () {
+        if (!recognition) return;
+        if (!isListening) {
+          recognition.start();
+        } else {
+          recognition.stop();
+        }
+      });
+
+      soundToggleBtn.addEventListener("click", function () {
+        soundOn = !soundOn;
+        if (soundOn) {
+          if (ambientAudio.src) {
+            ambientAudio.play().catch(function () {});
+            soundToggleBtn.textContent = "Sound on";
+          } else {
+            soundToggleBtn.textContent = "Sound on (placeholder)";
+          }
+        } else {
+          ambientAudio.pause();
+          soundToggleBtn.textContent = "Sound off";
+        }
+      });
+
+      function showScreen(id) {
+        screens.forEach(function (screen) {
+          screen.classList.toggle("active", screen.id === id);
+        });
+      }
+
+      function createSession() {
+        return {
+          id: uid(),
+          createdAt: new Date().toISOString(),
+          rawDump: "",
+          items: [],
+          closureSummary: closureSentence,
+          breathingCompleted: false
+        };
+      }
+
+      function loadSession() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function saveSession() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+        } catch (error) {
+        }
+      }
+
+      function parseItems(text) {
+        return text
+          .split(/[\n\r]+|[.!?]+/g)
+          .map(function (line) { return line.trim().replace(/^\-+/, "").trim(); })
+          .filter(function (line) { return line.length > 1; })
+          .slice(0, 20)
+          .map(function (line) {
+            return { id: uid(), text: line, bucket: "tomorrow" };
+          });
+      }
+
+      function normalizeBucket(bucket) {
+        var allowed = {
+          tonight: true,
+          tomorrow: true,
+          parked: true,
+          let_go: true
+        };
+        return allowed[bucket] ? bucket : "parked";
+      }
+
+      function renderSortItems() {
+        sortList.innerHTML = "";
+        if (!session.items.length) {
+          session.items.push({ id: uid(), text: "", bucket: "parked" });
+        }
+        session.items.forEach(function (item) {
+          var wrap = document.createElement("div");
+          wrap.className = "sort-item";
+          wrap.dataset.id = item.id;
+
+          var input = document.createElement("input");
+          input.type = "text";
+          input.value = item.text || "";
+          input.placeholder = "Thought...";
+          input.addEventListener("input", function () {
+            item.text = input.value;
+            saveSession();
+          });
+
+          var select = document.createElement("select");
+          [
+            ["tonight", "Tonight"],
+            ["tomorrow", "Tomorrow"],
+            ["parked", "Parked"],
+            ["let_go", "Let go"]
+          ].forEach(function (optionPair) {
+            var opt = document.createElement("option");
+            opt.value = optionPair[0];
+            opt.textContent = optionPair[1];
+            if (item.bucket === optionPair[0]) opt.selected = true;
+            select.appendChild(opt);
+          });
+          select.addEventListener("change", function () {
+            item.bucket = normalizeBucket(select.value);
+            saveSession();
+          });
+
+          wrap.appendChild(input);
+          wrap.appendChild(select);
+          sortList.appendChild(wrap);
+        });
+      }
+
+      function renderClosure() {
+        var buckets = {
+          tonight: [],
+          tomorrow: [],
+          parked: [],
+          let_go: []
+        };
+        session.items.forEach(function (item) {
+          var bucket = normalizeBucket(item.bucket);
+          buckets[bucket].push(item.text);
+        });
+
+        Object.keys(buckets).forEach(function (bucketKey) {
+          var listEl = document.getElementById("list-" + bucketKey);
+          listEl.innerHTML = "";
+          if (!buckets[bucketKey].length) {
+            var empty = document.createElement("li");
+            empty.textContent = "-";
+            listEl.appendChild(empty);
+            return;
+          }
+          buckets[bucketKey].forEach(function (text) {
+            var li = document.createElement("li");
+            li.textContent = text;
+            listEl.appendChild(li);
+          });
+        });
+
+        closureText.textContent = closureSentence;
+      }
+
+      function formatMs(ms) {
+        var total = Math.ceil(ms / 1000);
+        var minutes = Math.floor(total / 60);
+        var seconds = total % 60;
+        return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
+      }
+
+      var breathRaf = 0;
+      var breathStartAt = 0;
+      var breathingActive = false;
+      var freezeTime = 0;
+
+      function easeInOut(t) {
+        return 0.5 - Math.cos(Math.PI * t) / 2;
+      }
+
+      function startBreathing() {
+        if (breathingActive) return;
+        breathingActive = true;
+        breathStartAt = performance.now();
+        freezeTime = 0;
+        tick();
+      }
+
+      function stopBreathing() {
+        breathingActive = false;
+        if (breathRaf) cancelAnimationFrame(breathRaf);
+        breathRaf = 0;
+      }
+
+      function tick() {
+        if (!breathingActive) return;
+        var now = performance.now();
+        var elapsed = now - breathStartAt;
+
+        var cycleTime = elapsed % cycleMs;
+        var direction = "inhale";
+        var phaseProgress = 0;
+        var breathValue = 0.5;
+
+        if (cycleTime < inhaleMs) {
+          direction = "inhale";
+          phaseProgress = cycleTime / inhaleMs;
+          breathValue = easeInOut(phaseProgress);
+        } else {
+          direction = "exhale";
+          phaseProgress = (cycleTime - inhaleMs) / exhaleMs;
+          breathValue = 1 - easeInOut(phaseProgress);
+        }
+
+        breathLabel.textContent = direction === "inhale" ? "Inhale" : "Exhale";
+        document.documentElement.style.setProperty("--breath", breathValue.toFixed(4));
+
+        if (elapsed <= guidedMs) {
+          countdown.textContent = formatMs(guidedMs - elapsed);
+          freezeTime = elapsed;
+        } else {
+          if (!freezeTime) freezeTime = guidedMs;
+          countdown.textContent = "00:00 +";
+        }
+
+        layers.forEach(function (layer, index) {
+          var baseSize = Number(layer.dataset.size) / 100;
+          var speed = Number(layer.dataset.speed);
+          var depth = Number(layer.dataset.depth);
+          var pulseAmp = 0.045 + depth * 0.007;
+          var micro = Math.sin(elapsed * (0.0005 + depth * 0.00008) + depth * 0.7) * 0.011;
+          var scale = baseSize + pulseAmp * (breathValue - 0.5) * 2 + micro;
+          var rot = elapsed * speed * 360 + (direction === "inhale" ? phaseProgress * (1.5 + depth * 0.15) : -phaseProgress * (1.2 + depth * 0.12));
+          var alpha = 0.22 + (index * 0.07) + breathValue * 0.22;
+
+          layer.style.width = (baseSize * 100) + "%";
+          layer.style.height = (baseSize * 100) + "%";
+          layer.style.opacity = String(Math.min(0.9, alpha));
+          layer.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ") rotate(" + rot.toFixed(3) + "deg)";
+        });
+
+        breathRaf = requestAnimationFrame(tick);
+      }
+
+      function setupSpeechRecognition() {
+        var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          voiceHint.textContent = "Voice input is not available here. Typing works normally.";
+          voiceBtn.disabled = true;
+          voiceBtn.style.opacity = "0.6";
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+
+        recognition.onstart = function () {
+          isListening = true;
+          voiceBtn.textContent = "Stop voice";
+          voiceHint.textContent = "Listening...";
+        };
+
+        recognition.onend = function () {
+          isListening = false;
+          voiceBtn.textContent = "Voice input";
+          voiceHint.textContent = "Voice input ready if your browser supports speech recognition.";
+        };
+
+        recognition.onerror = function () {
+          isListening = false;
+          voiceBtn.textContent = "Voice input";
+          voiceHint.textContent = "Voice input had an issue. You can still type.";
+        };
+
+        recognition.onresult = function (event) {
+          var finalChunk = "";
+          for (var i = event.resultIndex; i < event.results.length; i += 1) {
+            if (event.results[i].isFinal) {
+              finalChunk += event.results[i][0].transcript + " ";
+            }
+          }
+          if (finalChunk.trim()) {
+            var current = dumpInput.value.trim();
+            dumpInput.value = (current ? current + " " : "") + finalChunk.trim();
+          }
+        };
+      }
+
+      function stopListening() {
+        if (recognition && isListening) {
+          recognition.stop();
+        }
+      }
+
+      function uid() {
+        return "i_" + Math.random().toString(36).slice(2, 10);
+      }
+
+      if (session.rawDump) {
+        renderSortItems();
+      }
+      renderClosure();
+      saveSession();
+    })();
+  </script>
+</body>
+</html>
