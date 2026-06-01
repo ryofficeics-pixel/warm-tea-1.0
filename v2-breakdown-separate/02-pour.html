@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Warm Tea V2 - Step 1 Pour</title>
+  <link rel="stylesheet" href="./shared.css">
+</head>
+<body data-page="pour">
+  <main class="phone">
+    <div class="topbar">
+      <a class="iconBtn" href="./01-home.html">←</a>
+      <div></div>
+    </div>
+    <div class="screen">
+      <div class="label">Step 1</div>
+      <h1 class="title">Pour it out</h1>
+      <p class="subtitle">Say it messy. Say it honestly. No one needs to understand it yet.</p>
+
+      <div class="voice-lang">
+        <label for="speechLang">Voice</label>
+        <select id="speechLang" class="lang-select">
+          <option value="auto">Auto (device)</option>
+          <option value="en-US">English (US)</option>
+          <option value="en-GB">English (UK)</option>
+          <option value="id-ID">Bahasa Indonesia</option>
+          <option value="ms-MY">Bahasa Melayu</option>
+          <option value="es-ES">Espanol</option>
+          <option value="fr-FR">Francais</option>
+          <option value="de-DE">Deutsch</option>
+          <option value="pt-BR">Portugues (BR)</option>
+          <option value="ru-RU">Russkiy</option>
+          <option value="ar-SA">Arabic</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="ja-JP">Japanese</option>
+          <option value="ko-KR">Korean</option>
+          <option value="zh-CN">Chinese (Simplified)</option>
+          <option value="zh-TW">Chinese (Traditional)</option>
+        </select>
+      </div>
+      <p class="lang-note">Any language is okay. Fragments and gibberish are okay too.</p>
+
+      <div class="chips" style="margin-top:14px">
+        <button class="chip" data-e="Anger">Anger</button>
+        <button class="chip" data-e="Sadness">Sadness</button>
+        <button class="chip" data-e="Disappointment">Disappointment</button>
+        <button class="chip" data-e="Overload">Overload</button>
+        <button class="chip" data-e="Numb">Numb</button>
+        <button class="chip" data-e="I don't know">I don't know</button>
+      </div>
+
+      <div class="orb" id="voiceOrb">🎙️</div>
+      <div id="voiceTimer" class="center muted" style="margin-top:8px;letter-spacing:.1em">0:00</div>
+
+      <textarea class="field" id="transcript" rows="6" placeholder="Tap the orb to begin..." spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" style="margin-top:14px"></textarea>
+      <textarea class="field" id="textArea" rows="5" placeholder="Write it badly. Let it be messy." spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" style="margin-top:10px;display:none"></textarea>
+
+      <div class="stack mt20 pb-safe" style="margin-top:20px">
+        <button id="startVoice" class="btn btn-secondary" type="button">Start voice</button>
+        <button id="stopVoice" class="btn btn-secondary" type="button" style="display:none">Stop voice</button>
+        <button id="typeMode" class="btn btn-secondary" type="button">Type instead</button>
+        <button id="toSort" class="btn btn-primary" type="button">Sort this</button>
+      </div>
+    </div>
+  </main>
+  <script src="./shared.js"></script>
+</body>
+</html>
