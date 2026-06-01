@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Warm Tea · Mind Clearing</title>
+<style>
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root{
+  --bg:#0f0d0b;
+  --gold:#e9c979;
+  --gold-soft:#f3ddb0;
+  --gold-dim:rgba(233,201,121,.55);
+  --text:#f4ead8;
+  --muted:rgba(244,234,216,.62);
+  --faint:rgba(244,234,216,.36);
+  --glass:rgba(255,255,255,.042);
+  --glass-border:rgba(244,232,209,.1);
+  --ease:220ms cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  display:grid;place-items:center;
+  background:
+    radial-gradient(circle at 50% 34%,rgba(233,201,121,.12),transparent 26%),
+    radial-gradient(circle at 50% 100%,rgba(233,201,121,.07),transparent 34%),
+    linear-gradient(180deg,#0e0c0a 0%,#15110d 54%,#18130f 100%);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ─── PHONE SHELL ─────────────────────────────────────── */
+.phone{
+  width:min(390px,100vw);
+  height:min(844px,100vh);
+  position:relative;
+  overflow:hidden;
+  border-radius:clamp(0px,3vw,34px);
+  background:
+    radial-gradient(circle at 50% 38%,rgba(233,201,121,.18),transparent 27%),
+    radial-gradient(circle at 50% 58%,rgba(233,201,121,.07),transparent 42%),
+    linear-gradient(180deg,#100d0a 0%,#19130e 100%);
+  box-shadow:0 30px 90px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.03);
+  isolation:isolate;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+
+/* dust particles */
+.phone::before{
+  content:"";
+  position:absolute;inset:-14%;
+  background:
+    radial-gradient(circle at 18% 24%,rgba(255,245,220,.12),transparent 1.4px),
+    radial-gradient(circle at 72% 30%,rgba(255,235,180,.14),transparent 1.2px),
+    radial-gradient(circle at 40% 72%,rgba(255,235,180,.09),transparent 1.3px),
+    radial-gradient(circle at 84% 78%,rgba(255,255,255,.08),transparent 1.3px);
+  background-size:132px 132px,176px 176px,182px 182px,148px 148px;
+  animation:dust 24s linear infinite;
+  opacity:.72;z-index:0;pointer-events:none;
+}
+
+/* ─── SCREEN CLARITY GLOW ─────────────────────────────── */
+/* Sits above the phone background, below all content.
+   Brightens the entire screen as the mind clears.         */
+#screenGlow{
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:1;
+  opacity:0;
+  /* Two layers:
+     1. Uniform warm-white tint  — lifts overall brightness
+     2. Radial gold highlight    — brightens the centre more */
+  background:
+    radial-gradient(circle at 50% 42%,
+      rgba(255,248,228,.22) 0%,
+      rgba(233,201,121,.10) 35%,
+      transparent 65%),
+    linear-gradient(180deg,
+      rgba(255,248,228,.10) 0%,
+      rgba(244,234,200,.07) 50%,
+      rgba(233,201,121,.05) 100%);
+}
+
+/* mist */
+.mist,.mist2{
+  position:absolute;width:280px;height:520px;border-radius:999px;
+  filter:blur(22px);
+  background:radial-gradient(ellipse at center,rgba(255,245,220,.1),transparent 64%);
+  pointer-events:none;z-index:0;
+}
+.mist {left:-132px;top:158px;animation:mistA 18s ease-in-out infinite alternate}
+.mist2{right:-130px;top:280px;animation:mistB 22s ease-in-out infinite alternate}
+
+/* sparks */
+.spark{
+  position:absolute;left:var(--x);top:var(--y);
+  width:3px;height:3px;border-radius:50%;
+  background:rgba(255,239,196,.78);
+  box-shadow:0 0 12px rgba(255,239,196,.84);
+  animation:float var(--dur) ease-in-out infinite;
+  animation-delay:var(--delay);
+  pointer-events:none;z-index:1;
+}
+
+/* ─── TOPBAR ──────────────────────────────────────────── */
+.topbar{
+  position:absolute;
+  top:calc(env(safe-area-inset-top,0px) + 16px);
+  left:20px;right:20px;
+  display:flex;justify-content:space-between;align-items:center;
+  z-index:20;
+}
+.iconBtn{
+  width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;
+  border:1px solid var(--glass-border);
+  color:var(--muted);
+  background:var(--glass);
+  backdrop-filter:blur(10px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  font-size:15px;cursor:pointer;
+  transition:background var(--ease),color var(--ease);
+  user-select:none;
+}
+.iconBtn:hover{background:rgba(255,255,255,.07);color:var(--text)}
+
+/* ─── NAV ─────────────────────────────────────────────── */
+.nav{
+  position:absolute;left:18px;right:18px;bottom:18px;
+  height:58px;border-radius:22px;
+  border:1px solid var(--glass-border);
+  background:var(--glass);
+  backdrop-filter:blur(16px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+  display:grid;grid-template-columns:repeat(5,1fr);
+  align-items:center;
+  color:var(--faint);font-size:10px;
+  z-index:20;letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.nav span{display:grid;place-items:center;gap:4px;cursor:pointer}
+.nav i{
+  width:24px;height:24px;border-radius:50%;
+  display:grid;place-items:center;font-style:normal;
+  border:1px solid rgba(244,232,209,.13);
+}
+.nav .on{color:var(--gold)}
+.nav .on i{background:rgba(233,201,121,.16);box-shadow:0 0 22px rgba(233,201,121,.24)}
+
+/* ─── STAGE ───────────────────────────────────────────── */
+/* Fixed-size absolute-positioned container.
+   Nothing inside affects the icon's position. */
+.stage{
+  position:relative;
+  width:300px;
+  height:420px;
+  flex-shrink:0;
+  z-index:5;
+}
+
+/* ─── ICON WRAPPER — pinned dead-centre of stage ─────── */
+.icon-wrap{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-56px); /* nudge slightly above true centre */
+  width:180px;height:180px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ─── ALL TEXT absolutely positioned — never in flow ─── */
+.label-top{
+  position:absolute;
+  top:18px;
+  left:0;right:0;
+  text-align:center;
+  font-size:10px;font-weight:500;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--faint);
+}
+.phase-text{
+  position:absolute;
+  bottom:84px;
+  left:0;right:0;
+  text-align:center;
+  font-size:13px;font-weight:500;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(233,201,121,.72);
+  transition:opacity .6s ease;
+}
+.sub-text{
+  position:absolute;
+  bottom:56px;
+  left:20px;right:20px;
+  text-align:center;
+  font-size:13px;font-style:italic;
+  color:var(--muted);
+  letter-spacing:.02em;
+  line-height:1.5;
+  transition:opacity .6s ease;
+}
+
+/* ─── PROGRESS DOTS — fixed at bottom of stage ────────── */
+.dots{
+  position:absolute;
+  bottom:18px;
+  left:0;right:0;
+  display:flex;gap:5px;
+  justify-content:center;
+}
+
+/* aura ring – expands on clear */
+.aura{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(233,201,121,.09),rgba(233,201,121,.03) 40%,transparent 70%);
+  filter:blur(14px);
+  opacity:0;
+  transition:opacity 2s ease;
+}
+
+/* the SVG icon itself */
+#head-svg{
+  position:relative;
+  z-index:2;
+  width:120px;height:120px;
+  overflow:visible;
+  filter:drop-shadow(0 2px 12px rgba(0,0,0,.5));
+  transition:filter 1.8s ease;
+}
+
+/* particle canvas – overlaid on icon wrap */
+#dust-canvas{
+  position:absolute;
+  inset:-40px;
+  width:calc(100% + 80px);
+  height:calc(100% + 80px);
+  pointer-events:none;
+  z-index:3;
+}
+
+/* ─── PROGRESS DOTS ───────────────────────────────────── */
+.dot{
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(233,201,121,.18);
+  transition:background .4s,width .4s;
+}
+.dot.on{background:rgba(233,201,121,.75);width:14px;border-radius:3px;}
+.dot.done{background:rgba(233,201,121,.45);}
+
+/* ─── KEYFRAMES ───────────────────────────────────────── */
+@keyframes dust{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(-92px,-118px,0)}
+}
+@keyframes mistA{
+  from{transform:translateX(0) translateY(0) scale(1)}
+  to{transform:translateX(34px) translateY(-20px) scale(1.1);opacity:.74}
+}
+@keyframes mistB{
+  from{transform:translateX(0) translateY(0) scale(1)}
+  to{transform:translateX(-26px) translateY(-15px) scale(1.08);opacity:.68}
+}
+@keyframes float{
+  0%,100%{transform:translate3d(0,0,0) scale(.6);opacity:.16}
+  36%{transform:translate3d(-8px,-22px,0) scale(1.2);opacity:.9}
+  70%{transform:translate3d(5px,-34px,0) scale(.8);opacity:.26}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition:none!important;
+  }
+}
+</style>
+</head>
+<body>
+<main class="phone">
+  <!-- Screen clarity overlay: brightens as mind clears -->
+  <div id="screenGlow"></div>
+  <div class="mist"></div>
+  <div class="mist2"></div>
+  <div class="spark" style="--x:16%;--y:32%;--dur:9s;--delay:-1s"></div>
+  <div class="spark" style="--x:78%;--y:27%;--dur:11s;--delay:-3s"></div>
+  <div class="spark" style="--x:14%;--y:66%;--dur:8s;--delay:-2s"></div>
+  <div class="spark" style="--x:84%;--y:60%;--dur:10s;--delay:-5s"></div>
+
+  <div class="topbar">
+    <div class="iconBtn">←</div>
+    <div class="iconBtn" style="font-size:11px;letter-spacing:.06em;width:auto;padding:0 12px;border-radius:999px;">Reset</div>
+  </div>
+
+  <!-- ── Main stage ── -->
+  <div class="stage">
+    <div class="label-top" id="labelTop">Mind Clearing</div>
+
+    <div class="icon-wrap">
+      <!-- Aura glow – appears when clean -->
+      <div class="aura" id="aura"></div>
+
+      <!-- Particle canvas -->
+      <canvas id="dust-canvas"></canvas>
+
+      <!-- Head / mind SVG icon -->
+      <svg id="head-svg" viewBox="0 0 120 120" fill="none"
+           xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="headFill" cx="42%" cy="38%" r="60%">
+            <stop offset="0%"   stop-color="#b89878" stop-opacity="1" id="gStop0"/>
+            <stop offset="55%"  stop-color="#7a5c3c" stop-opacity="1" id="gStop1"/>
+            <stop offset="100%" stop-color="#4a3520" stop-opacity="1" id="gStop2"/>
+          </radialGradient>
+          <radialGradient id="headFillClean" cx="42%" cy="38%" r="60%">
+            <stop offset="0%"   stop-color="#f4e8cc"/>
+            <stop offset="55%"  stop-color="#e9c979"/>
+            <stop offset="100%" stop-color="#c8963a"/>
+          </radialGradient>
+          <filter id="headBlur">
+            <feGaussianBlur stdDeviation="0" id="blurNode"/>
+          </filter>
+          <clipPath id="headClip">
+            <!-- Same path as head shape for particle clipping origin -->
+            <ellipse cx="60" cy="50" rx="32" ry="36"/>
+          </clipPath>
+        </defs>
+
+        <!-- Outer subtle glow ring -->
+        <ellipse id="glowRing" cx="60" cy="52" rx="42" ry="46"
+          fill="none" stroke="rgba(233,201,121,0)" stroke-width="1"
+          opacity="0"/>
+
+        <!-- Neck -->
+        <rect id="neck" x="51" y="80" width="18" height="14" rx="4"
+          fill="url(#headFill)" opacity=".9"/>
+
+        <!-- Head shape -->
+        <ellipse id="headShape" cx="60" cy="50" rx="32" ry="36"
+          fill="url(#headFill)"/>
+
+        <!-- Subtle surface highlight -->
+        <ellipse id="headHighlight" cx="50" cy="38" rx="10" ry="7"
+          fill="rgba(255,240,200,.06)" transform="rotate(-15 50 38)"/>
+
+        <!-- Murky overlay that fades away -->
+        <ellipse id="murkyOverlay" cx="60" cy="50" rx="32" ry="36"
+          fill="rgba(40,28,14,.45)" opacity="1"/>
+
+        <!-- Inner brain hint – soft lobes, very minimal -->
+        <path id="brainHint" d="
+          M52 42 Q48 36 54 33 Q60 30 66 33 Q72 36 68 42
+          M52 42 Q54 46 60 46 Q66 46 68 42
+          M56 46 Q55 52 58 54 Q62 54 65 52 Q64 46 68 46
+        "
+          stroke="rgba(233,201,121,.12)" stroke-width="1.2"
+          fill="none" stroke-linecap="round" stroke-linejoin="round"
+          opacity="0"/>
+
+        <!-- Hairline detail – minimal strokes at top -->
+        <path id="hairLines" d="
+          M42 30 Q50 20 60 18 Q70 20 78 30
+        "
+          stroke="rgba(200,160,80,.18)" stroke-width="1"
+          fill="none" stroke-linecap="round" opacity="0"/>
+
+        <!-- Expression: two tiny neutral eyes -->
+        <circle id="eyeL" cx="50" cy="52" r="2.2"
+          fill="rgba(244,234,216,.35)" opacity=".6"/>
+        <circle id="eyeR" cx="70" cy="52" r="2.2"
+          fill="rgba(244,234,216,.35)" opacity=".6"/>
+
+        <!-- Subtle rim light -->
+        <ellipse id="rimLight" cx="60" cy="50" rx="32" ry="36"
+          fill="none"
+          stroke="rgba(233,201,121,.08)" stroke-width="1.2"
+          opacity="0"/>
+      </svg>
+    </div>
+
+    <!-- Phase label -->
+    <div class="phase-text" id="phaseText">Heavy</div>
+    <div class="sub-text"  id="subText">Mental noise begins to fall away.</div>
+
+    <!-- Progress dots (3 phases) -->
+    <div class="dots">
+      <div class="dot on"  id="d0"></div>
+      <div class="dot"     id="d1"></div>
+      <div class="dot"     id="d2"></div>
+    </div>
+  </div>
+
+  <!-- Nav bar -->
+  <nav class="nav">
+    <span><i>⌁</i>Unload</span>
+    <span><i>◌</i>Sort</span>
+    <span class="on"><i>✦</i>Clear</span>
+    <span><i>✧</i>Breathe</span>
+    <span><i>☾</i>Return</span>
+  </nav>
+</main>
+
+<script>
+/* ─────────────────────────────────────────────────────────
+   CANVAS SETUP
+───────────────────────────────────────────────────────── */
+const canvas  = document.getElementById('dust-canvas');
+const ctx     = canvas.getContext('2d');
+
+// Size the canvas to match its CSS size
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resizeCanvas();
+
+// Logical canvas centre (in CSS px relative to canvas element)
+// canvas element is icon-wrap + 80px on each side = 260×260 CSS px
+// icon centre is at 130, 130 of canvas CSS px
+const CW = 260, CH = 260;
+const CX = CW / 2;   // 130
+const CY = CH / 2;   // 130
+
+/* ─────────────────────────────────────────────────────────
+   PARTICLE SYSTEM
+───────────────────────────────────────────────────────── */
+
+// Colour palette: heavy (muddy) → transitioning → clean (gold/pale)
+const COLOURS_HEAVY = [
+  'rgba(90,65,38,',    // dark mud brown
+  'rgba(72,56,38,',    // ashy brown
+  'rgba(110,85,55,',   // warm murk
+  'rgba(55,45,32,',    // deep grime
+  'rgba(95,78,54,',    // medium dirt
+];
+const COLOURS_MID = [
+  'rgba(160,130,85,',
+  'rgba(180,148,90,',
+  'rgba(155,120,70,',
+  'rgba(200,165,100,',
+];
+const COLOURS_CLEAN = [
+  'rgba(233,201,121,',
+  'rgba(244,220,155,',
+  'rgba(255,240,190,',
+  'rgba(200,170,100,',
+];
+
+class Particle {
+  constructor(progress){
+    this.reset(progress);
+  }
+
+  reset(progress){
+    // Spawn from the head area
+    // Head centre relative to canvas = (CX, CY-14) in CSS px
+    const headCX = CX;
+    const headCY = CY - 14;
+    const headRX = 32;
+    const headRY = 36;
+
+    // Random point inside / around the head ellipse
+    const angle  = Math.random() * Math.PI * 2;
+    const rr     = 0.3 + Math.random() * 0.85; // 0..1 radial fraction
+    this.x  = headCX + Math.cos(angle) * headRX * rr;
+    this.y  = headCY + Math.sin(angle) * headRY * rr;
+
+    // Size: small, slight variety
+    this.r  = 0.8 + Math.random() * 2.2;
+
+    // Fall speed – slow, meditative
+    this.vy = 0.18 + Math.random() * 0.28;
+
+    // Slight horizontal drift
+    this.vx = (Math.random() - 0.5) * 0.14;
+
+    // Wobble
+    this.wx     = (Math.random() - 0.5) * 0.8;   // amplitude
+    this.wFreq  = 0.4 + Math.random() * 0.6;      // frequency
+    this.wPhase = Math.random() * Math.PI * 2;
+
+    // Life: opacity fades in then out as particle falls
+    this.life    = 0;
+    this.maxLife = 90 + Math.random() * 80;       // frames
+    this.born    = false;
+
+    // Colour based on current progress
+    this.palette = this._pickPalette(progress);
+    this.colIdx  = Math.floor(Math.random() * this.palette.length);
+
+    // Slight delay before this particle starts moving
+    this.delay = Math.floor(Math.random() * 40);
+  }
+
+  _pickPalette(p){
+    if(p < 0.4) return COLOURS_HEAVY;
+    if(p < 0.75) return COLOURS_MID;
+    return COLOURS_CLEAN;
+  }
+
+  update(dt, progress){
+    if(this.delay > 0){ this.delay--; return; }
+    this.born = true;
+    this.life++;
+
+    const wobble = Math.sin(this.life * this.wFreq * 0.05 + this.wPhase) * this.wx;
+    this.x += this.vx + wobble * 0.08;
+    this.y += this.vy;
+  }
+
+  draw(ctx, progress){
+    if(!this.born) return;
+    const t = this.life / this.maxLife;
+    // Fade in (0→0.15 of life), stay, fade out (0.7→1.0)
+    let alpha;
+    if(t < 0.15)      alpha = t / 0.15;
+    else if(t < 0.7)  alpha = 1;
+    else               alpha = 1 - (t - 0.7) / 0.3;
+
+    alpha *= 0.62;   // overall cap
+
+    // As progress increases, particles get fainter (mind clears)
+    alpha *= (1 - progress * 0.6);
+
+    const col = this.palette[this.colIdx];
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = col + alpha.toFixed(3) + ')';
+    ctx.fill();
+  }
+
+  isDead(){ return this.born && this.life >= this.maxLife; }
+}
+
+/* ─────────────────────────────────────────────────────────
+   ANIMATION STATE MACHINE
+   3 phases  (each ~4s) + clean hold (2s) = ~14s loop
+───────────────────────────────────────────────────────── */
+const PHASES = [
+  { name:'Heavy',      sub:'Thoughts become heavier before they fall.',  dot:0, dur:4000 },
+  { name:'Falling',    sub:'Mental noise slowly drops away.',             dot:1, dur:5000 },
+  { name:'Clearing',   sub:'The mind returns to stillness.',              dot:2, dur:4000 },
+  { name:'Clear',      sub:'Still. Light. Present.',                      dot:2, dur:3000 }, // hold
+];
+const TOTAL_DUR = PHASES.reduce((a,p)=>a+p.dur, 0); // 16000ms
+
+let startTime   = null;
+let particles   = [];
+const MAX_PARTS = 22;
+
+// DOM refs
+const phaseTextEl = document.getElementById('phaseText');
+const subTextEl   = document.getElementById('subText');
+const dots        = [0,1,2].map(i=>document.getElementById('d'+i));
+const auraEl      = document.getElementById('aura');
+const screenGlow  = document.getElementById('screenGlow');
+const phoneEl     = document.querySelector('.phone');
+
+// SVG element refs
+const headShape     = document.getElementById('headShape');
+const neck          = document.getElementById('neck');
+const murkyOverlay  = document.getElementById('murkyOverlay');
+const glowRing      = document.getElementById('glowRing');
+const rimLight      = document.getElementById('rimLight');
+const brainHint     = document.getElementById('brainHint');
+const hairLines     = document.getElementById('hairLines');
+const eyeL          = document.getElementById('eyeL');
+const eyeR          = document.getElementById('eyeR');
+const headHighlight = document.getElementById('headHighlight');
+const gStop0        = document.getElementById('gStop0');
+const gStop1        = document.getElementById('gStop1');
+const gStop2        = document.getElementById('gStop2');
+
+function eio(t){ return t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2 }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)) }
+function lerp(a,b,t){ return a+(b-a)*t }
+
+/* ─── Colour lerp (hex → hex) via rgb floats ─── */
+function lerpColour(r0,g0,b0, r1,g1,b1, t){
+  return `rgb(${Math.round(lerp(r0,r1,t))},${Math.round(lerp(g0,g1,t))},${Math.round(lerp(b0,b1,t))})`;
+}
+
+// start colour: muddy warm grey-brown
+// end colour:   pale gold
+const C0 = [100, 78, 52];  // muddy
+const C1 = [180,145, 90];  // transitional
+const C2 = [233,201,121];  // gold
+
+function headColour(progress){
+  if(progress < 0.5){
+    const t = progress / 0.5;
+    return lerpColour(C0[0],C0[1],C0[2], C1[0],C1[1],C1[2], t);
+  } else {
+    const t = (progress-0.5)/0.5;
+    return lerpColour(C1[0],C1[1],C1[2], C2[0],C2[1],C2[2], t);
+  }
+}
+
+/* ─── Update dot indicators ─── */
+let lastPhaseIdx = -1;
+function updateDots(phaseIdx, phaseProgress){
+  dots.forEach((d,i)=>{
+    d.className = 'dot';
+    if(i < phaseIdx)                 d.classList.add('done');
+    else if(i === Math.min(phaseIdx,2)) d.classList.add('on');
+  });
+}
+
+/* ─── Update phase text with fade ─── */
+let lastText = '';
+function setPhaseText(name, sub){
+  if(name === lastText) return;
+  lastText = name;
+  phaseTextEl.style.opacity = '0';
+  subTextEl.style.opacity   = '0';
+  setTimeout(()=>{
+    phaseTextEl.textContent = name;
+    subTextEl.textContent   = sub;
+    phaseTextEl.style.opacity = '1';
+    subTextEl.style.opacity   = '1';
+  }, 340);
+}
+
+/* ─── Main rAF loop ─── */
+function frame(ts){
+  if(!startTime) startTime = ts;
+  const elapsed = (ts - startTime) % TOTAL_DUR;
+
+  // Which phase are we in?
+  let acc = 0, phaseIdx = 0, phaseElapsed = 0;
+  for(let i=0; i<PHASES.length; i++){
+    if(elapsed < acc + PHASES[i].dur){
+      phaseIdx     = i;
+      phaseElapsed = elapsed - acc;
+      break;
+    }
+    acc += PHASES[i].dur;
+  }
+  const phaseProgress = phaseElapsed / PHASES[phaseIdx].dur;
+  const ph = PHASES[phaseIdx];
+
+  // Overall 0→1 progress across full loop (excluding hold)
+  const activeTime = TOTAL_DUR - PHASES[3].dur; // first 3 phases
+  const globalProgress = clamp(elapsed / activeTime, 0, 1);
+  const smoothP = eio(globalProgress);
+
+  // ── Text & dots ──
+  setPhaseText(ph.name, ph.sub);
+  updateDots(phaseIdx, phaseProgress);
+
+  // ── Particle emission ──
+  // Emit more at start, taper off as mind clears
+  const emitRate = lerp(1.0, 0.05, smoothP);
+  if(Math.random() < emitRate && particles.length < MAX_PARTS){
+    particles.push(new Particle(smoothP));
+  }
+
+  // ── Update & cull particles ──
+  particles = particles.filter(p=>!p.isDead());
+  particles.forEach(p => p.update(1, smoothP));
+
+  // ── Canvas clear ──
+  const cssW = CW, cssH = CH;
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  // ── Draw particles ──
+  particles.forEach(p => p.draw(ctx, smoothP));
+
+  // ── Update SVG icon ──
+  updateIcon(smoothP, phaseIdx, phaseProgress);
+
+  // ── Screen brightness: lifts 25% as mind clears ──────────
+  // Starts lifting at ~30% progress, peaks at 100%
+  const glowOnset  = Math.max(0, (smoothP - 0.3) / 0.7);
+  const glowSmooth = eio(glowOnset);
+  // screenGlow opacity 0 → 1 (the overlay itself is tuned to give ~25% lift)
+  screenGlow.style.opacity = glowSmooth.toFixed(3);
+
+  requestAnimationFrame(frame);
+}
+
+/* ─────────────────────────────────────────────────────────
+   SVG ICON UPDATES
+───────────────────────────────────────────────────────── */
+function updateIcon(p, phaseIdx, phaseProgress){
+  // ── Head fill colour (gradient stops) ──
+  if(p < 0.5){
+    const t = p/0.5;
+    gStop0.setAttribute('stop-color', lerpColour(184,144,96, 220,185,130, t));
+    gStop1.setAttribute('stop-color', lerpColour(122, 92,60, 170,135, 80, t));
+    gStop2.setAttribute('stop-color', lerpColour( 74, 53,32, 120, 88, 44, t));
+  } else {
+    const t = (p-0.5)/0.5;
+    gStop0.setAttribute('stop-color', lerpColour(220,185,130, 244,228,180, t));
+    gStop1.setAttribute('stop-color', lerpColour(170,135, 80, 233,201,121, t));
+    gStop2.setAttribute('stop-color', lerpColour(120, 88, 44, 180,145, 68, t));
+  }
+
+  // ── Murky overlay fades out ──
+  const murkyOp = lerp(0.45, 0, eio(p));
+  murkyOverlay.setAttribute('opacity', murkyOp.toFixed(3));
+
+  // ── Drop-shadow brightens ──
+  const shadowAlpha = lerp(0.5, 0.15, p);
+  const glowPx      = lerp(12, 32, p);
+  const glowAlpha   = lerp(0.0, 0.45, eio(p));
+  headShape.style.filter =
+    `drop-shadow(0 2px ${Math.round(glowPx)}px rgba(233,201,121,${glowAlpha.toFixed(2)}))`;
+
+  // ── Rim light appears ──
+  rimLight.setAttribute('opacity', lerp(0, 0.7, eio(p)).toFixed(3));
+  rimLight.setAttribute('stroke',
+    `rgba(233,201,121,${lerp(0.04,0.3,eio(p)).toFixed(2)})`);
+
+  // ── Glow ring pulses in ──
+  const ringOp = lerp(0, 0.5, eio(Math.max(0, p-0.6)/0.4));
+  glowRing.setAttribute('opacity', ringOp.toFixed(3));
+  glowRing.setAttribute('stroke',
+    `rgba(233,201,121,${lerp(0,0.25,eio(Math.max(0,p-0.6)/0.4)).toFixed(2)})`);
+
+  // ── Brain hint lines emerge ──
+  brainHint.setAttribute('opacity', lerp(0, 0.8, eio(Math.max(0,p-0.5)/0.5)).toFixed(3));
+  brainHint.setAttribute('stroke',
+    `rgba(233,201,121,${lerp(0.0,0.45,eio(Math.max(0,p-0.5)/0.5)).toFixed(2)})`);
+
+  // ── Hair lines ──
+  hairLines.setAttribute('opacity', lerp(0, 0.9, eio(Math.max(0,p-0.55)/0.45)).toFixed(3));
+
+  // ── Eyes brighten ──
+  const eyeOp = lerp(0.25, 0.95, eio(p));
+  eyeL.setAttribute('opacity', eyeOp.toFixed(3));
+  eyeR.setAttribute('opacity', eyeOp.toFixed(3));
+  eyeL.setAttribute('fill', `rgba(244,234,216,${lerp(0.2,0.85,eio(p)).toFixed(2)})`);
+  eyeR.setAttribute('fill', `rgba(244,234,216,${lerp(0.2,0.85,eio(p)).toFixed(2)})`);
+
+  // ── Surface highlight ──
+  headHighlight.setAttribute('fill',
+    `rgba(255,240,200,${lerp(0.04,0.22,eio(p)).toFixed(2)})`);
+
+  // ── Aura glow (DOM element outside SVG) ──
+  const auraOp = lerp(0, 1, eio(Math.max(0, p - 0.65) / 0.35));
+  auraEl.style.opacity = auraOp.toFixed(3);
+
+  // ── Very subtle scale breathe (like the cup float) ──
+  const breathe = 1 + Math.sin(Date.now() * 0.0008) * 0.012 * (0.3 + p * 0.7);
+  document.getElementById('head-svg').style.transform = `scale(${breathe.toFixed(4)})`;
+}
+
+/* ─── Boot ─── */
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
